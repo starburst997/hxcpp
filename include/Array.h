@@ -183,7 +183,7 @@ public:
 
    void __SetSize(int inLen);
    void __SetSizeExact(int inLen=0);
-   
+
    Dynamic __unsafe_get(const Dynamic &i);
    Dynamic __unsafe_set(const Dynamic &i, const Dynamic &val);
 
@@ -197,7 +197,7 @@ public:
       HX_OBJ_WB_PESSIMISTIC_GET(this);
    }
 
-   
+
    virtual hx::ArrayStore getStoreType() const = 0;
 
 
@@ -225,20 +225,20 @@ public:
    virtual Dynamic __unshift(const Dynamic &a0) = 0;
    virtual Dynamic __map(const Dynamic &func) = 0;
    virtual Dynamic __filter(const Dynamic &func) = 0;
-   inline Dynamic ____SetSize(const Dynamic &len)  { __SetSize(len); return this; } 
-   inline Dynamic ____SetSizeExact(const Dynamic &len)  { __SetSizeExact(len); return this; } 
-   inline Dynamic ____unsafe_set(const Dynamic &i, const Dynamic &val)  { return __SetItem(i,val); } 
-   inline Dynamic ____unsafe_get(const Dynamic &i)  { return __GetItem(i); } 
+   inline Dynamic ____SetSize(const Dynamic &len)  { __SetSize(len); return this; }
+   inline Dynamic ____SetSizeExact(const Dynamic &len)  { __SetSizeExact(len); return this; }
+   inline Dynamic ____unsafe_set(const Dynamic &i, const Dynamic &val)  { return __SetItem(i,val); }
+   inline Dynamic ____unsafe_get(const Dynamic &i)  { return __GetItem(i); }
    virtual Dynamic __blit(const Dynamic &a0,const Dynamic &a1,const Dynamic &a2,const Dynamic &a3) = 0;
    inline Dynamic __zero(const Dynamic &a0,const Dynamic &a1)  { zero(a0,a1); return null(); }
    virtual Dynamic __memcmp(const Dynamic &a0) = 0;
    virtual void __qsort(Dynamic inCompare) = 0;
 
    #else
-   inline void ____SetSize(int len)  { __SetSize(len); } 
-   inline void ____SetSizeExact(int len)  { __SetSizeExact(len); } 
-   inline Dynamic ____unsafe_set(const Dynamic &i, const Dynamic &val)  { return __SetItem(i,val); } 
-   inline Dynamic ____unsafe_get(const Dynamic &i)  { return __GetItem(i); } 
+   inline void ____SetSize(int len)  { __SetSize(len); }
+   inline void ____SetSizeExact(int len)  { __SetSizeExact(len); }
+   inline Dynamic ____unsafe_set(const Dynamic &i, const Dynamic &val)  { return __SetItem(i,val); }
+   inline Dynamic ____unsafe_get(const Dynamic &i)  { return __GetItem(i); }
 
    virtual hx::ArrayBase *__concat(const cpp::VirtualArray &a0) = 0;
    virtual hx::ArrayBase *__copy() = 0;
@@ -247,6 +247,7 @@ public:
    virtual ::String __join(::String a0) = 0;
    virtual Dynamic __pop() = 0;
    virtual int __push(const Dynamic &a0) = 0;
+   virtual bool __contains(const Dynamic &a0) = 0;
    virtual bool __remove(const Dynamic &a0) = 0;
    virtual bool __removeAt(int inIndex) = 0;
    virtual int __indexOf(const Dynamic &a0,const Dynamic &a1) = 0;
@@ -276,6 +277,7 @@ public:
    Dynamic join_dyn();
    Dynamic pop_dyn();
    Dynamic push_dyn();
+   Dynamic contains_dyn();
    Dynamic remove_dyn();
    Dynamic removeAt_dyn();
    Dynamic indexOf_dyn();
@@ -605,6 +607,16 @@ public:
       return -1;
    }
 
+   bool contains(ELEM_ inValue)
+   {
+      ELEM_ *e = (ELEM_ *)mBase;
+      for(int i=0;i<length;i++)
+      {
+         if (e[i]==inValue)
+            return true;
+      }
+      return false;
+   }
 
    bool remove(ELEM_ inValue)
    {
@@ -621,11 +633,11 @@ public:
    }
 
    bool removeAt( int idx )
-   { 
-      if( idx < 0 ) idx += length; 
-      if (idx>=length || idx<0) return false; 
-      RemoveElement(idx); 
-      return true; 
+   {
+      if( idx < 0 ) idx += length;
+      if (idx>=length || idx<0) return false;
+      RemoveElement(idx);
+      return true;
    }
 
 
@@ -778,7 +790,7 @@ public:
    template<typename TO>
    Dynamic iteratorFast() { return new hx::ArrayIterator<ELEM_,TO>(this); }
 
-   
+
    virtual hx::ArrayStore getStoreType() const
    {
       return (hx::ArrayStore) hx::ArrayTraits<ELEM_>::StoreType;
@@ -826,6 +838,7 @@ public:
    virtual ::String __join(::String a0) { return join(a0); }
    virtual Dynamic __pop() { return pop(); }
    virtual int __push(const Dynamic &a0) { return push(a0);}
+   virtual bool __contains(const Dynamic &a0) { return contains(a0); }
    virtual bool __remove(const Dynamic &a0) { return remove(a0); }
    virtual bool __removeAt(int inIndex) { return removeAt(inIndex); }
    virtual int __indexOf(const Dynamic &a0,const Dynamic &a1) { return indexOf(a0, a1); }
@@ -902,7 +915,7 @@ public:
    template<typename SOURCE_>
    Array( const Array<SOURCE_> &inRHS ) : super(0)
    {
-      Array_obj<SOURCE_> *ptr = inRHS.GetPtr(); 
+      Array_obj<SOURCE_> *ptr = inRHS.GetPtr();
       if (ptr)
       {
          OBJ_ *arr = dynamic_cast<OBJ_ *>(ptr);
@@ -947,7 +960,7 @@ public:
 
    inline void setDynamic( const Dynamic &inRHS, bool inIgnoreVirtualArray=false )
    {
-      hx::Object *ptr = inRHS.GetPtr(); 
+      hx::Object *ptr = inRHS.GetPtr();
       if (ptr)
       {
          OBJ_ *arr = dynamic_cast<OBJ_ *>(ptr);
@@ -1128,7 +1141,7 @@ Array<ELEM_> Array_obj<ELEM_>::__SetSizeExact(int inLen)
    return this;
 }
 
-// Static externs 
+// Static externs
 template<typename ARRAY>
 inline ARRAY _hx_array_set_size_exact(ARRAY inArray, int inLen)
 {

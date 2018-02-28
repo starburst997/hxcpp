@@ -14,6 +14,7 @@ const char *gArrayFuncNames[] =
    "afJoin",
    "afPop",
    "afPush",
+   "afContains",
    "afRemove",
    "afReverse",
    "afShift",
@@ -33,7 +34,7 @@ const char *gArrayFuncNames[] =
    "afBlit",
 };
 
-int gArrayArgCount[] = 
+int gArrayArgCount[] =
 {
    1, //afConcat,
    0, //afCopy,
@@ -42,6 +43,7 @@ int gArrayArgCount[] =
    1, //afJoin,
    0, //afPop,
    1, //afPush,
+   1, //afContains,
    1, //afRemove,
    0, //afReverse,
    0, //afShift,
@@ -89,7 +91,7 @@ static ArrayBase * SLJIT_CALL array_expand_size(ArrayBase *inArray, int inSize)
 }
 
 #endif
- 
+
 
 
 
@@ -387,7 +389,7 @@ static hx::Object *SLJIT_CALL objGetIndex(hx::Object *inArray, int inIndex)
    return Dynamic(inArray->__GetItem(inIndex)).mPtr;
 }
 #endif
- 
+
 
 template<typename T>
 struct ExprBaseTypeOf { typedef hx::Object *Base ; };
@@ -437,6 +439,7 @@ struct ArrayBuiltin : public ArrayBuiltinBase
             return etVoid;
 
          case afPush:
+         case afContains:
          case afRemove:
          case afIndexOf:
          case afLastIndexOf:
@@ -473,6 +476,15 @@ struct ArrayBuiltin : public ArrayBuiltinBase
          Array_obj<ELEM> *thisVal = (Array_obj<ELEM>*)thisExpr->runObject(ctx);
          BCR_CHECK;
          return ValToInt(thisVal->shift());
+      }
+      if (FUNC==afContains)
+      {
+         Array_obj<ELEM> *thisVal = (Array_obj<ELEM>*)thisExpr->runObject(ctx);
+         BCR_CHECK;
+         ELEM elem;
+         runValue(elem,ctx,args[0]);
+         BCR_CHECK;
+         return thisVal->contains(elem);
       }
       if (FUNC==afRemove)
       {
@@ -670,7 +682,7 @@ struct ArrayBuiltin : public ArrayBuiltinBase
          return thisVal->toString();
       }
 
-      if (FUNC==afPush || FUNC==afRemove || FUNC==afIndexOf || FUNC==afLastIndexOf)
+      if (FUNC==afPush || FUNC==afContains || FUNC==afRemove || FUNC==afIndexOf || FUNC==afLastIndexOf)
          return Dynamic(runInt(ctx))->toString();
 
       return runObject(ctx)->toString();
@@ -789,7 +801,7 @@ struct ArrayBuiltin : public ArrayBuiltinBase
          return thisVal->iterator().mPtr;
       }
 
-      if (FUNC==afPush || FUNC==afRemove || FUNC==afIndexOf || FUNC==afLastIndexOf)
+      if (FUNC==afPush || FUNC==afContains || FUNC==afRemove || FUNC==afIndexOf || FUNC==afLastIndexOf)
          return Dynamic(runInt(ctx)).mPtr;
 
       if (FUNC==afJoin || FUNC==afToString)
@@ -840,7 +852,7 @@ struct ArrayBuiltin : public ArrayBuiltinBase
          #endif
       }
 
-      if (FUNC==afPush || FUNC==afRemove || FUNC==afIndexOf || FUNC==afLastIndexOf)
+      if (FUNC==afPush || FUNC==afContains || FUNC==afRemove || FUNC==afIndexOf || FUNC==afLastIndexOf)
          runInt(ctx);
 
       if (FUNC==afConcat || FUNC==afCopy || FUNC==afReverse || FUNC==afSplice || FUNC==afSlice ||
@@ -953,7 +965,7 @@ struct ArrayBuiltin : public ArrayBuiltinBase
             case aoMod:
                replace = new ArraySetter<ELEM,AssignMod>(this,thisExpr,args);
                break;
-      
+
             default: ;
                printf("make setter %d\n", op);
                throw "setter not implemented";
@@ -1053,6 +1065,11 @@ struct ArrayBuiltin : public ArrayBuiltinBase
          HX_OBJ_WB_GET(inArray,hx::PointerOf(t));
       #endif
       return result.mPtr;
+   }
+
+   static int SLJIT_CALL runContains( Array_obj<ELEM> *inArray, typename ExprBaseTypeOf<ELEM>::Base inBase)
+   {
+      return inArray->contains(inBase);
    }
 
    static int SLJIT_CALL runRemove( Array_obj<ELEM> *inArray, typename ExprBaseTypeOf<ELEM>::Base inBase)
@@ -1611,6 +1628,21 @@ struct ArrayBuiltin : public ArrayBuiltinBase
                break;
             }
 
+         // Array<ELEM>
+         case afContains:
+            {
+               JitTemp thisVal(compiler, jtPointer);
+               thisExpr->genCode(compiler, thisVal, etObject);
+
+               ExprType elemType = (ExprType)ExprTypeOf<ELEM>::value;
+               JitTemp val(compiler,getJitType(elemType));
+               args[0]->genCode(compiler, val, elemType);
+
+               compiler->callNative( (void *)runContains, thisVal, val );
+
+               compiler->convertReturnReg(etInt, inDest, destType, true);
+               break;
+            }
 
          // Array<ELEM>
          case afRemove:
@@ -1648,7 +1680,7 @@ struct ArrayBuiltin : public ArrayBuiltinBase
                break;
             }
 
-   
+
          // Array<ELEM>
             case afIterator:
             {
@@ -1867,6 +1899,10 @@ static hx::Object * SLJIT_CALL objGetItem(hx::Object *inObj, int inIndex)
 {
    return inObj->__GetItem(inIndex).mPtr;
 }
+static int SLJIT_CALL arrayContains(ArrayAnyImpl *inObj, hx::Object *inValue)
+{
+   return inObj->contains(inValue);
+}
 static int SLJIT_CALL arrayRemove(ArrayAnyImpl *inObj, hx::Object *inValue)
 {
    return inObj->remove(inValue);
@@ -2047,6 +2083,8 @@ CppiaExpr *createArrayBuiltin(CppiaExpr *src, ArrayType inType, CppiaExpr *inThi
       return TCreateArrayBuiltin<afPop,NoCrement>(src, inType, inThisExpr, ioExpressions);
    if (field==HX_CSTRING("push"))
       return TCreateArrayBuiltin<afPush,NoCrement>(src, inType, inThisExpr, ioExpressions);
+   if (field==HX_CSTRING("contains"))
+      return TCreateArrayBuiltin<afContains,NoCrement>(src, inType, inThisExpr, ioExpressions);
    if (field==HX_CSTRING("remove"))
       return TCreateArrayBuiltin<afRemove,NoCrement>(src, inType, inThisExpr, ioExpressions);
    if (field==HX_CSTRING("reverse"))

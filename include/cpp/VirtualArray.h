@@ -397,6 +397,7 @@ public:
 
    inline Dynamic pop() { checkBase(); return store==hx::arrayEmpty ? null() : base->__pop(); }
 
+   inline bool contains(Dynamic inValue) { checkBase(); return (store!=hx::arrayEmpty) && base->__contains(inValue); }
    inline bool remove(Dynamic inValue) { checkBase(); return (store!=hx::arrayEmpty) && base->__remove(inValue); }
    inline bool removeAt(int inIndex) { checkBase(); return (store!=hx::arrayEmpty) && base->__removeAt(inIndex); }
 
@@ -445,10 +446,10 @@ public:
       if (store!=hx::arrayFixed) EnsureStorage(inVal);
       __SetItem(inIndex,inVal);
       return this;
-   } 
+   }
 
-   inline Dynamic __unsafe_set(int inIndex, const Dynamic &val)  { return __SetItem(inIndex,val); } 
-   inline Dynamic __unsafe_get(int inIndex)  { return __GetItem(inIndex); } 
+   inline Dynamic __unsafe_set(int inIndex, const Dynamic &val)  { return __SetItem(inIndex,val); }
+   inline Dynamic __unsafe_get(int inIndex)  { return __GetItem(inIndex); }
 
 
    template<typename T>
@@ -512,6 +513,7 @@ public:
    Dynamic join_dyn();
    Dynamic pop_dyn();
    Dynamic push_dyn();
+   Dynamic contains_dyn();
    Dynamic remove_dyn();
    Dynamic removeAt_dyn();
    Dynamic indexOf_dyn();
@@ -560,7 +562,7 @@ inline VirtualArray VirtualArray::Add(const T &inVal)
 
 inline void VirtualArray::setDynamic( const Dynamic &inRHS )
 {
-   hx::Object *ptr = inRHS.GetPtr(); 
+   hx::Object *ptr = inRHS.GetPtr();
    if (ptr)
    {
       if (ptr->__GetClass().mPtr == super::__SGetClass().mPtr )

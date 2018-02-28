@@ -115,6 +115,7 @@ enum ArrayFunc
    afJoin,
    afPop,
    afPush,
+   afContains,
    afRemove,
    afReverse,
    afShift,
@@ -252,7 +253,7 @@ struct ScriptCallable : public CppiaDynamicExpr
    int argCount;
    int stackSize;
    bool hasDefaults;
-   
+
    std::vector<CppiaStackVar> args;
    std::vector<bool>          hasDefault;
    std::vector<CppiaConst>    initVals;
@@ -511,7 +512,7 @@ struct CppiaVar
    String           stringVal;
 
    void             *valPointer;
-   
+
 
    CppiaVar(bool inIsStatic);
    CppiaVar(CppiaFunction *inDynamicFunction);
@@ -989,7 +990,7 @@ struct CrementPostDec
       inVal = Dynamic(Dynamic(inVal) - 1).mPtr;
       return result;
    }
- 
+
 };
 
 

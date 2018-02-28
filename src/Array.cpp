@@ -225,7 +225,7 @@ void ArrayBase::__SetSize(int inSize)
    }
 }
 
- 
+
 void ArrayBase::__SetSizeExact(int inSize)
 {
    if (inSize!=length || inSize!=mAlloc)
@@ -263,7 +263,7 @@ void ArrayBase::__SetSizeExact(int inSize)
    }
 }
 
- 
+
 Dynamic ArrayBase::__unsafe_get(const Dynamic &i)
 {
    return __GetItem(i);
@@ -273,7 +273,7 @@ Dynamic ArrayBase::__unsafe_get(const Dynamic &i)
 Dynamic ArrayBase::__unsafe_set(const Dynamic &i, const Dynamic &val)
 {
    return __SetItem(i,val);
-} 
+}
 
 
 
@@ -555,6 +555,7 @@ DEFINE_ARRAY_FUNC1(return,join);
 DEFINE_ARRAY_FUNC0(return,pop);
 DEFINE_ARRAY_FUNC0(return,copy);
 DEFINE_ARRAY_FUNC1(return,push);
+DEFINE_ARRAY_FUNC1(return,contains);
 DEFINE_ARRAY_FUNC1(return,remove);
 DEFINE_ARRAY_FUNC1(return,removeAt);
 DEFINE_ARRAY_FUNC2(return,indexOf);
@@ -582,6 +583,7 @@ hx::Val ArrayBase::__Field(const String &inString, hx::PropertyAccess inCallProp
    if (inString==HX_CSTRING("join")) return join_dyn();
    if (inString==HX_CSTRING("pop")) return pop_dyn();
    if (inString==HX_CSTRING("push")) return push_dyn();
+   if (inString==HX_CSTRING("contains")) return contains_dyn();
    if (inString==HX_CSTRING("remove")) return remove_dyn();
    if (inString==HX_CSTRING("removeAt")) return removeAt_dyn();
    if (inString==HX_CSTRING("indexOf")) return indexOf_dyn();
@@ -618,6 +620,7 @@ static String sArrayFields[] = {
    HX_CSTRING("copy"),
    HX_CSTRING("pop"),
    HX_CSTRING("push"),
+   HX_CSTRING("contains"),
    HX_CSTRING("remove"),
    HX_CSTRING("removeAt"),
    HX_CSTRING("indexOf"),
@@ -733,6 +736,7 @@ DEFINE_VARRAY_FUNC1(return,join);
 DEFINE_VARRAY_FUNC0(return,pop);
 DEFINE_VARRAY_FUNC0(return,copy);
 DEFINE_VARRAY_FUNC1(return,push);
+DEFINE_VARRAY_FUNC1(return,contains);
 DEFINE_VARRAY_FUNC1(return,remove);
 DEFINE_VARRAY_FUNC1(return,removeAt);
 DEFINE_VARRAY_FUNC2(return,indexOf);
@@ -803,6 +807,7 @@ hx::Val VirtualArray_obj::__Field(const String &inString, hx::PropertyAccess inC
    if (inString==HX_CSTRING("join")) return join_dyn();
    if (inString==HX_CSTRING("pop")) return pop_dyn();
    if (inString==HX_CSTRING("push")) return push_dyn();
+   if (inString==HX_CSTRING("contains")) return contains_dyn();
    if (inString==HX_CSTRING("remove")) return remove_dyn();
    if (inString==HX_CSTRING("removeAt")) return removeAt_dyn();
    if (inString==HX_CSTRING("indexOf")) return indexOf_dyn();
