@@ -1,0 +1,10 @@
+{
+  "name": "hxcpp",
+  "version": "1.0.0",
+  "license": "MIT",
+  "scripts": {
+  	"tools": "cd tools/run; haxe compile.hxml; cd ../hxcpp; haxe compile.hxml; cd ../build; haxe compile.hxml;",
+  	"ios": "cd project; neko build.n ios;",
+  	"mac": "cd project; neko build.n ndll-mac-m64"
+  }
+}
